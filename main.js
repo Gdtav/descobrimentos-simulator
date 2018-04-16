@@ -2,116 +2,77 @@
 
 window.addEventListener("load", main);
 
-function dist(x1, y1, x2, y2) {
-    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+function startGame() {
+    alert("teste1");
+    return undefined;
 }
 
-class NavArea extends createjs.Container {
-    constructor(hexGrid, background, propsBackground) {
-        super();
-        this.hexGrid = hexGrid;
-        this.background = new createjs.Bitmap(background);
-        this.background.x = propsBackground.x;
-        this.background.y = propsBackground.y;
-        this.background.scale = propsBackground.scale;
-        this.addChild(this.background);
-        this.addChild(this.hexGrid)
-    }
+function optionsMenu() {
+    alert("teste2");
+    return undefined;
+}
+
+function showCredits() {
+    alert("teste3");
+    return undefined;
+
+}
+
+function exit() {
+
+    alert("teste4");
+    return undefined;
 }
 
 function main() {
-
-    let char;
-
     let canvas = document.getElementById("canvas");
-    let h = canvas.height;
-    let w = canvas.width;
-
-    let selectedTile;
-
+    let w = canvas.width = 1280;
+    let h = canvas.height = 720;
     let stage = new createjs.Stage(canvas);
-    stage.enableMouseOver();
-
-    let stop = function () {
-        moving = false;
-        hexg.updateClickable(char);
+    let title = new createjs.Text("Descobrimentos\n\tSimulator", "100px Pirata One", "black");
+    title.x = 200;
+    title.y = 50;
+    let bg = new Image();
+    let background = new createjs.Bitmap(bg);
+    bg.onload = function () {
+        background.scale = w / bg.naturalWidth;
     };
-
-    let tilesize = 75;
-
-    let yesClick = function () {
-        inmenu = false;
-        menu.hide(250).call(move);
+    bg.src = "Images/backgroundMainMenu.jpg";
+    let playButton = new Button(300, 300, 120, 60, "Jogar", {}, {
+        font: "Pirata One",
+        size: "50"
+    }, startGame);
+    let optionsButton = new Button(300, 380, 180, 60, "Opções", {}, {
+        font: "Pirata One",
+        size: "50"
+    }, optionsMenu);
+    let creditsButton = new Button(300, 470, 180, 60, "Créditos", {}, {
+        font: "Pirata One",
+        size: "50"
+    }, showCredits);
+    let exitButton = new Button(300, 540, 100, 60, "Sair", {}, {
+        font: "Pirata One",
+        size: "50"
+    }, exit);
+    let chest = new Image();
+    let treasureChest = new createjs.Bitmap(chest);
+    chest.onload = function () {
+        treasureChest.scale = 0.5;
     };
-
-    let noClick = function () {
-        inmenu = false;
-        menu.hide(250).call(stop);
-    };
-
-    let tileClick = function (ev) {
-        if (!moving && !inmenu && ev.currentTarget.clickable) {
-            inmenu = true;
-            hexg.disableClickable();
-            selectedTile = ev.currentTarget;
-            menu.show(1000);
-        }
-    };
-
-    function move() {
-        moving = true;
-        char.hex_x = selectedTile.hex_x;
-        char.hex_y = selectedTile.hex_y;
-        selectedTile.dispatchEvent(new Event("mouseout"));
-        createjs.Tween.get(char).to({
-            x: selectedTile.x,
-            y: selectedTile.y
-        }, dist(char.x, char.y, selectedTile.x, selectedTile.y), createjs.Ease.sineInOut).call(stop);
-    }
-
-    let moving = false;
-    let inmenu = false;
-
-    let margin = 100;
-
-    let yesButton = new Button(0, 0, 400, 100, "Yes", {
-        fill: "turquoise",
-        stroke: "black",
-        round: 5
-    }, {font: "Helvetica", size: "30", color: "black"}, yesClick);
-    let noButton = new Button(0, 150, 400, 100, "No", {
-        fill: "turquoise",
-        stroke: "black",
-        round: 5
-    }, {font: "Helvetica", size: "30", color: "black"}, noClick);
-
-    let menu = new Menu(w - 2 * margin, h - 2 * margin, "Avançar para esta casa?", [yesButton, noButton], {
-        stroke: "black",
-        fill: "beige",
-        b_y: -h / 2 + margin * 2
-    }, {
-        color: "black",
-        size: 30,
-        font: "Helvetica"
-    });
-
-    let hexg = new HexGrid(tilesize, {color: "rgb(255,0,0)", alpha: 0.6}, "red");
-    for (let i = 0; i < 6; i++) {
-        for (let j = 0; j < 12; j++)
-            hexg.newHex(i, j, 10, {gold: 10}, tileClick);
-    }
-
-    char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png");
-
-    let navArea = new NavArea(hexg, "Images/sat.jpg", {x: -2250, y: -1000, scale: 1.2});
-
-    navArea.addChildAt(char, 1);
-    stage.addChild(navArea);
-    stage.addChild(menu);
-
-    hexg.updateClickable(char);
+    chest.src = "Images/chest.png";
+    treasureChest.x = 900;
+    treasureChest.y = 500;
+    stage.addChild(background);
+    stage.addChild(title);
+    stage.addChild(playButton);
+    stage.addChild(optionsButton);
+    stage.addChild(creditsButton);
+    stage.addChild(exitButton);
+    stage.addChild(treasureChest);
 
     createjs.Ticker.setFPS(60);
     createjs.Ticker.addEventListener("tick", stage);
-
+    treasureChest.addEventListener("click", function () {
+        alert("teste");
+    })
 }
