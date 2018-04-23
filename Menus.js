@@ -7,25 +7,50 @@ window.addEventListener("load", function () {
 });
 
 function centerText(text) {
-    let b = text.getBounds();
-    text.x = -(b.width / 2);
-    text.y = -(b.height / 2);
+    text.x = -(text.getMeasuredWidth() / 2);
+    text.y = -(text.getMeasuredHeight() / 2);
     return text;
 }
 
 class Button extends createjs.Container {
-    constructor(x, y, w, h, text, props, textProps, action) {
+    constructor(x, y, w, h, text, props, textProps, tint, action) {
         super();
         this.x = x;
         this.y = y;
         this.w = w;
         this.h = h;
+        this.clickable = true;
         let graphic = new createjs.Shape();
         graphic.graphics.beginFill(props.fill).beginStroke(props.stroke).drawRoundRect(-w / 2, -h / 2, w, h, props.round);
         let textObj = centerText(new createjs.Text(text, textProps.size + "px " + textProps.font, textProps.color));
         this.addChild(graphic);
         this.addChild(textObj);
         this.addEventListener("click", action);
+        let self = this;
+        if (tint !== undefined) {
+            let hit = new createjs.Shape();
+            hit.graphics.beginFill("black").drawRoundRect(-w / 2, -h / 2, w, h, props.round)
+            this.hitArea = hit;
+        }
+        let tintTile = function (ev) {
+            console.log(text);
+            if (self.clickable && ev.type === "mouseover")
+                createjs.Tween.get(self.tint).to({alpha: self.tintAlpha}, 75);
+            else
+                createjs.Tween.get(self.tint).to({alpha: 0}, 75);
+        };
+
+        if (typeof(tint) !== "undefined") {
+            this.tintAlpha = tint.alpha;
+            this.tint = new createjs.Shape();
+            this.tint.graphics.beginFill(tint.color).drawRoundRect(-w / 2, -h / 2, w, h, props.round);
+            this.tint.alpha = 0;
+            this.tint.x = 0;
+            this.tint.y = 0;
+            this.addEventListener("mouseover", tintTile);
+            this.addEventListener("mouseout", tintTile);
+            this.addChild(this.tint);
+        }
     }
 }
 
@@ -37,15 +62,13 @@ class Menu extends createjs.Container {
         mainWindow.x = 0;
         mainWindow.y = 0;
         this.addChild(mainWindow);
-        let self = this;
         let banner = new createjs.Text(title, textProps.size + "px " + textProps.font, textProps.color);
         banner.textAlign = "center";
         banner.x = 0;
         banner.y = props.b_y;
         this.addChild(banner);
-        buttons.forEach(function (item,index) {
-            self.addChild(item);
-        });
+        for (let i = 0; i < buttons.length; i++)
+            this.addChild(buttons[i]);
         this.hide(0);
 
     }

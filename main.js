@@ -29,6 +29,9 @@ function main() {
     let w = canvas.width = 1280;
     let h = canvas.height = 720;
     let stage = new createjs.Stage(canvas);
+
+    stage.enableMouseOver();
+
     let title = new createjs.Text("Descobrimentos\n\tSimulator", "100px Pirata One", "black");
     title.x = 200;
     title.y = 50;
@@ -38,22 +41,22 @@ function main() {
         background.scale = w / bg.naturalWidth;
     };
     bg.src = "Images/backgroundMainMenu.jpg";
-    let playButton = new Button(300, 300, 120, 60, "Jogar", {}, {
+    let playButton = new Button(300, 300, 140, 60, "Jogar", {round: 5}, {
         font: "Pirata One",
         size: "50"
-    }, startGame);
-    let optionsButton = new Button(300, 380, 180, 60, "Opções", {}, {
+    }, {color: "yellow", alpha: 0.3}, startGame);
+    let optionsButton = new Button(300, 380, 180, 60, "Opções", {round: 5}, {
         font: "Pirata One",
         size: "50"
-    }, optionsMenu);
-    let creditsButton = new Button(300, 470, 180, 60, "Créditos", {}, {
+    }, {color: "yellow", alpha: 0.3}, optionsMenu);
+    let creditsButton = new Button(300, 470, 180, 60, "Créditos", {round: 5}, {
         font: "Pirata One",
         size: "50"
-    }, showCredits);
-    let exitButton = new Button(300, 540, 100, 60, "Sair", {}, {
+    }, {color: "yellow", alpha: 0.3}, showCredits);
+    let exitButton = new Button(300, 540, 100, 60, "Sair", {round: 5}, {
         font: "Pirata One",
         size: "50"
-    }, exit);
+    }, {color: "yellow", alpha: 0.3}, exit);
     let chest = new Image();
     let treasureChest = new createjs.Bitmap(chest);
     chest.onload = function () {
@@ -74,5 +77,5 @@ function main() {
     createjs.Ticker.addEventListener("tick", stage);
     treasureChest.addEventListener("click", function () {
         alert("teste");
-    })
+    });
 }
