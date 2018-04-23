@@ -78,12 +78,12 @@ function main() {
         fill: "turquoise",
         stroke: "black",
         round: 5
-    }, {font: "Helvetica", size: "30", color: "black"}, yesClick);
-    let noButton = new Button(0, 150, 400, 100, "No", {
+    }, {font: "Helvetica", size: "30", color: "black"}, {color: "green", alpha: 0.5}, yesClick);
+    let noButton = new Button(0, 150, 400, 100, 'bananas', {
         fill: "turquoise",
         stroke: "black",
         round: 5
-    }, {font: "Helvetica", size: "30", color: "black"}, noClick);
+    }, {font: "Helvetica", size: "30", color: "black"}, {color: "green", alpha:0.5},noClick);
 
     let menu = new Menu(w - 2 * margin, h - 2 * margin, "Avançar para esta casa?", [yesButton, noButton], {
         stroke: "black",
@@ -100,6 +100,8 @@ function main() {
         for (let j = 0; j < 12; j++)
             hexg.newHex(i, j, 10, {gold: 10}, tileClick);
     }
+
+
 
     char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png");
 

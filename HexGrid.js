@@ -54,15 +54,15 @@ class Hexagon extends createjs.Container {
 
 class Tile extends Hexagon {
     constructor(tilesize, x, y, hex_x, hex_y, cost, prize, tint = undefined, frame, img, clickable = false) {
-        super(tilesize, x, y, hex_x, hex_y, tint, {frame:frame, img:img}, false);
+        super(tilesize, x, y, hex_x, hex_y, tint, {frame: frame, img: img}, false);
         this.cost = cost;
         this.prize = prize;
     }
 }
 
 class Unit extends Hexagon {
-    constructor(tilesize, x, y, hex_x, hex_y, img){
-        super(tilesize,x,y,hex_x,hex_y,undefined,{img:img})
+    constructor(tilesize, x, y, hex_x, hex_y, img) {
+        super(tilesize, x, y, hex_x, hex_y, undefined, {img: img})
     }
 }
 
@@ -95,7 +95,7 @@ class HexGrid extends createjs.Container {
     }
 
     disableClickable() {
-        this.tiles.forEach(function (item,intex) {
+        this.tiles.forEach(function (item, intex) {
             item.clickable = false;
         })
     }
