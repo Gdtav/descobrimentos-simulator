@@ -75,7 +75,7 @@ class HexGrid extends createjs.Container {
         this.tiles = [];
     }
 
-    isAdjacent(t1, t2) {
+    static isAdjacent(t1, t2) {
         switch (t1.hex_y - t2.hex_y) {
             case 2:
             case -2:
@@ -87,17 +87,38 @@ class HexGrid extends createjs.Container {
         return false;
     }
 
+    static isAdjacent(hex_x, hex_y, tile) {
+        switch (tile.hex_y - hex_y) {
+            case 2:
+            case -2:
+                return tile.hex_x === hex_x;
+            case 1:
+            case -1:
+                return tile.hex_x === hex_x || (hex_x === tile.hex_x + 1 && tile.hex_y % 2 === 1) || (hex_x === tile.hex_x - 1 && tile.hex_y % 2 === 0);
+        }
+        return false;
+    }
+
+    static isAdjacent(hex_x1, hex_y1, hex_x2, hex_y2) {
+        switch (hex_y1 - hex_y2) {
+            case 2:
+            case -2:
+                return hex_x1 === hex_x2;
+            case 1:
+            case -1:
+                return hex_x1 === hex_x2 || (hex_x2 === hex_x1 + 1 && hex_y1 % 2 === 1) || (hex_x2 === hex_x1 - 1 && hex_y1 % 2 === 0);
+        }
+        return false;
+    }
+
     updateClickable(char) {
-        let self = this;
-        this.tiles.forEach(function (item, index) {
-            item.clickable = self.isAdjacent(char, item);
-        })
+        for (let i = 0; i < this.tiles.length; i++)
+            this.tiles[i].clickable = HexGrid.isAdjacent(char, this.tiles[i]);
     }
 
     disableClickable() {
-        this.tiles.forEach(function (item, intex) {
-            item.clickable = false;
-        })
+        for (let i = 0; i < this.tiles.length; i++)
+            this.tiles[i].clickable = false;
     }
 
     newHex(hex_x, hex_y, cost, prize, click, img = undefined) {
@@ -107,5 +128,13 @@ class HexGrid extends createjs.Container {
         this.tiles.push(hex);
         hex.addEventListener("click", click);
         this.addChild(hex);
+    }
+
+    getAdjacent(hex_x, hex_y) {
+        let tiles = [];
+        for (let i = 0; i < this.length; i++) {
+            if (HexGrid.isAdjacent(hex_x, hex_y, this.tiles[i]))
+                tiles.push(this.tiles[i]);
+        }
     }
 }

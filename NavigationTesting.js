@@ -102,7 +102,6 @@ function main() {
     }
 
 
-
     char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png");
 
     let navArea = new NavArea(hexg, "Images/sat.jpg", {x: -2250, y: -1000, scale: 1.2});
