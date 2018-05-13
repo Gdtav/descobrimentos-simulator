@@ -3,8 +3,7 @@
 window.addEventListener("load", main);
 
 function startGame() {
-    alert("teste1");
-    return undefined;
+    mainscreen();
 }
 
 function optionsMenu() {
@@ -19,9 +18,8 @@ function showCredits() {
 }
 
 function exit() {
-
-    alert("teste4");
-    return undefined;
+    if (confirm("Tem a certeza que deseja sair?"))
+        window.close();
 }
 
 function main() {
@@ -73,7 +71,7 @@ function main() {
     stage.addChild(exitButton);
     stage.addChild(treasureChest);
 
-    createjs.Ticker.setFPS(60);
+    createjs.Ticker.framerate = 60;
     createjs.Ticker.addEventListener("tick", stage);
     treasureChest.addEventListener("click", function () {
         alert("teste");
