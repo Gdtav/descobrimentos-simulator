@@ -17,17 +17,22 @@ class Navigation extends createjs.Container {
     constructor(expedition, stats) {
         super();
 
+        this.stats = Object.assign({},stats);
+
         let tileClick = function (ev) {
             let tile = ev.currentTarget;
             if (tile.clickable) {
                 if (tile.menu !== undefined)
                     tile.menu.show(1000);
                 else {
-                    let enemy_move = function () {
+                    let finish_move = function () {
+                        this.stats.hp -= tile.cost;
+                        bar.update(this.stats.hp);
                         for (let i = 0; i < enemies.length; i++)
                             enemies[i].move();
+                        hexg.updateClickable(char);
                     };
-                    char.moveTo(tile).call(enemy_move);
+                    char.moveTo(tile).call(finish_move);
                 }
             }
         };
@@ -43,13 +48,19 @@ class Navigation extends createjs.Container {
         let enemies = [];
         for (let i = 0; i < expedition.enemies.length; i++){
             let enemy = expedition.enemies[i];
-            enemy = new Enemy(expedition.tilesize,enemy.x,enemy.y,enemy.img,hexg,char,4,enemy.firepower,enemy.hp,enemy.prize);
+            enemy = new Enemy(expedition.tilesize,enemy.x,enemy.y,enemy.img,hexg,char,enemy.radar,enemy.firepower,enemy.hp,enemy.prize);
             enemies.push(enemy);
             navArea.addChild(enemy);
         }
 
         navArea.addChild(char);
         this.addChild(navArea);
+
+        let hud = new createjs.Container();
+        let bar = new Bar(10,200,100,10,this.stats.hp,"red");
+        hud.addChild(bar);
+
+        this.addChild(hud);
 
         hexg.updateClickable(char);
     }

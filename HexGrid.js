@@ -11,7 +11,7 @@ function angle(vertex_x, vertex_y, p1_x, p1_y, p2_x, p2_y) {
 
     let P12 = dist2(vertex_x, vertex_y, p1_x, p1_y), P13 = dist2(vertex_x, vertex_y, p2_x, p2_y),
         P23 = dist2(p1_x, p1_y, p2_x, p2_y);
-    return Math.acos((P12 + P13 - P23) / (2 * Math.sqrt(P12 * P13)));
+    return Math.acos(Math.max(-1,Math.min(1,(P12 + P13 - P23) / (2 * Math.sqrt(P12 * P13)))));
 }
 
 function convertToXY(tilesize, hex_x, hex_y) {
@@ -36,9 +36,9 @@ class Hexagon extends createjs.Container {
                 let img = new Image();
                 this.map = new createjs.Bitmap(img);
                 img.onload = function () {
-                    self.map.scale = (tilesize * 2) / img.naturalWidth;
-                    self.map.x = -tilesize;
-                    self.map.y = -tilesize / 2 * hex_fac;
+                    self.map.scale = Math.min((tilesize * 2) / img.naturalWidth, (tilesize * hex_fac) / img.naturalHeight);
+                    self.map.x = -self.map.getBounds().width * self.map.scale / 2;
+                    self.map.y = -self.map.getBounds().height * self.map.scale / 2;
                     self.addChild(self.map);
                 };
                 img.src = fill.img;
@@ -88,10 +88,10 @@ class Tile extends Hexagon {
 }
 
 class Unit extends Hexagon {
-    constructor(tilesize, hex_x, hex_y, img, hexg, stats) {
+    constructor(tilesize, hex_x, hex_y, img, hexg) {
         super(tilesize, hex_x, hex_y, undefined, {img: img}, true);
         this.hexg = hexg;
-        this.curTile = hexg.getTile(hex_x,hex_y);
+        this.curTile = hexg.getTile(hex_x, hex_y);
         this.curTile.filled = true;
     }
 
@@ -145,6 +145,7 @@ class Enemy extends Unit {
                     final = tiles[i];
                 }
             }
+            console.log(ang);
         }
         else {
             final = tiles[Math.floor(Math.random() * (tiles.length))]
@@ -213,7 +214,7 @@ class HexGrid extends createjs.Container {
 
     updateClickable(char) {
         for (let i = 0; i < this.tiles.length; i++)
-            this.tiles[i].clickable = HexGrid.isAdjacent(char.hex_x, char.hex_y, this.tiles[i].hex_x, this.tiles[i].hex_y);
+            this.tiles[i].clickable = HexGrid.isAdjacent(char.hex_x, char.hex_y, this.tiles[i].hex_x, this.tiles[i].hex_y) && !this.tiles[i].filled;
     }
 
     disableClickable() {

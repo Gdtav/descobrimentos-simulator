@@ -10,7 +10,13 @@ function testing() {
     let context = stage.canvas.getContext("2d");
     context.webkitImageSmoothingEnabled = context.mozImageSmoothingEnabled = true;
 
-    let nav = new Navigation(test1);
+    test1.hexmap = [];
+    for (let i = 0; i < 10; i++){
+        for (let j = 0; j < 10; j++)
+            test1.hexmap.push({x: i, y: j, cost: 20})
+    }
+
+    let nav = new Navigation(test1,{hp:400});
 
     stage.addChild(nav);
 

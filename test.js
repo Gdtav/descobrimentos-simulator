@@ -4,11 +4,11 @@ test1 = {
     tilesize: 50,
     enemies: [
         {
-            x: 6, y: 6, firepower: 10, hp: 40, img: "Images/Enemy.png",
+            x: 6, y: 6, radar: 4, firepower: 10, hp: 40, img: "Images/Ship-galleon.png",
             prize: {}
         },
         {
-            x: 6, y: 7, firepower: 20, hp: 50, img: "Images/Enemy.png",
+            x: 6, y: 7, radar: 6, firepower: 20, hp: 50, img: "Images/Enemy.png",
             prize: {}
         }
     ],
