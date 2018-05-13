@@ -1,23 +1,23 @@
 "use strict";
+window.addEventListener("load", testing);
 
-window.addEventListener("load", main);
+function testing() {
+    let canvas = document.getElementById("canvas");
+    let h = canvas.height;
+    let w = canvas.width;
+    let stage = new createjs.Stage(canvas);
+    stage.enableMouseOver();
+    let context = stage.canvas.getContext("2d");
+    context.webkitImageSmoothingEnabled = context.mozImageSmoothingEnabled = true;
 
-function dist(x1, y1, x2, y2) {
-    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+    let nav = new Navigation(test1);
+
+    stage.addChild(nav);
+
+    createjs.Ticker.setFPS(60);
+    createjs.Ticker.addEventListener("tick", stage);
 }
 
-class NavArea extends createjs.Container {
-    constructor(hexGrid, background, propsBackground) {
-        super();
-        this.hexGrid = hexGrid;
-        this.background = new createjs.Bitmap(background);
-        this.background.x = propsBackground.x;
-        this.background.y = propsBackground.y;
-        this.background.scale = propsBackground.scale;
-        this.addChild(this.background);
-        this.addChild(this.hexGrid)
-    }
-}
 
 function main() {
 
@@ -29,15 +29,44 @@ function main() {
 
     let selectedTile;
 
-    let stage = new createjs.Stage(canvas);
-    stage.enableMouseOver();
+
 
     let stop = function () {
         moving = false;
         hexg.updateClickable(char);
+        let text = new createjs.Text(String(selectedTile.cost), "20px Helvetica", "red");
+        text.x = 0;
+        text.y = 0;
+        char.addChild(text);
+        let clean = function(){char.removeChild(text)};
+        createjs.Tween.get(text).to({y:-tilesize,alpha:0},1000).call(clean);
     };
 
     let tilesize = 75;
+
+    let tileClick = function (ev) {
+        if(ev.currentTarget.clickable)
+            char.moveTo(ev.currentTarget);
+        /*
+        if (!moving && !inmenu && ev.currentTarget.clickable) {
+            inmenu = true;
+            hexg.disableClickable();
+            selectedTile = ev.currentTarget;
+            menu.show(1000);
+        }
+        */
+    };
+
+    let move = function () {
+        moving = true;
+        char.hex_x = selectedTile.hex_x;
+        char.hex_y = selectedTile.hex_y;
+        selectedTile.dispatchEvent(new Event("mouseout"));
+        createjs.Tween.get(char).to({
+            x: selectedTile.x,
+            y: selectedTile.y
+        }, dist(char.x, char.y, selectedTile.x, selectedTile.y), createjs.Ease.sineInOut).call(stop);
+    };
 
     let yesClick = function () {
         inmenu = false;
@@ -48,26 +77,6 @@ function main() {
         inmenu = false;
         menu.hide(250).call(stop);
     };
-
-    let tileClick = function (ev) {
-        if (!moving && !inmenu && ev.currentTarget.clickable) {
-            inmenu = true;
-            hexg.disableClickable();
-            selectedTile = ev.currentTarget;
-            menu.show(1000);
-        }
-    };
-
-    function move() {
-        moving = true;
-        char.hex_x = selectedTile.hex_x;
-        char.hex_y = selectedTile.hex_y;
-        selectedTile.dispatchEvent(new Event("mouseout"));
-        createjs.Tween.get(char).to({
-            x: selectedTile.x,
-            y: selectedTile.y
-        }, dist(char.x, char.y, selectedTile.x, selectedTile.y), createjs.Ease.sineInOut).call(stop);
-    }
 
     let moving = false;
     let inmenu = false;
@@ -98,15 +107,14 @@ function main() {
     let hexg = new HexGrid(tilesize, {color: "rgb(255,0,0)", alpha: 0.6}, "red");
     for (let i = 0; i < 6; i++) {
         for (let j = 0; j < 12; j++)
-            hexg.newHex(i, j, 10, {gold: 10}, tileClick);
+            hexg.newHex(i, j, Math.round(Math.random()*40), {gold: 10}, tileClick);
     }
 
-
-    char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png");
+    char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png",hexg);
 
     let navArea = new NavArea(hexg, "Images/sat.jpg", {x: -2250, y: -1000, scale: 1.2});
 
-    navArea.addChildAt(char, 1);
+    navArea.addChild(char);
     stage.addChild(navArea);
     stage.addChild(menu);
 
