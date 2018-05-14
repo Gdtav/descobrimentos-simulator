@@ -54,6 +54,12 @@ class Button extends createjs.Container {
     }
 }
 
+class TerritoryButton extends Button {
+    constructor(x,y, action) {
+        super(x,y,10,10,"",{round: 5, fill: "red", },{}, {color: "orange", alpha: 0.7},action);
+    }
+}
+
 class Menu extends createjs.Container {
     constructor(w, h, title, buttons, props, textProps) {
         super();

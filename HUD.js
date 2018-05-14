@@ -30,3 +30,31 @@ class Bar extends createjs.Container {
         this.curText.text = String(Math.max(val,0));
     }
 }
+
+class Counter extends createjs.Container {
+    constructor(x,y, size, iconPath, initValue) {
+        super();
+        let self = this;
+        this.x = x;
+        this.y = y;
+        this.size = size;
+        let icon = new Image();
+        let image = new createjs.Bitmap(icon);
+        icon.onload = function () {
+            image.scale = size / icon.naturalHeight;
+            image.x = 0;
+            image.y = 0;
+            self.addChild(image);
+        };
+        this.initValue = initValue;
+        this.text = new createjs.Text(String(initValue), size + "px Pirata One", "black");
+        this.text.x = image.x + 2;
+        this.text.y = 0;
+        this.addChild(this.text);
+    }
+
+    update(value) {
+        this.text.text = value;
+    }
+
+}

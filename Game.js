@@ -20,11 +20,12 @@ class Expedition {
 }
 
 class Territory {
-    constructor(facilities, conquered, name, img) {
+    constructor(facilities, conquered, name, img, button) {
         this.facilities = facilities;
         this.conquered = conquered;
         this.name = name;
         this.img = img;
+        this.button = button;
     }
 }
 
