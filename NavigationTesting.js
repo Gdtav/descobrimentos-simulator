@@ -16,7 +16,7 @@ function testing() {
             test1.hexmap.push({x: i, y: j, cost: 20})
     }
 
-    let nav = new Navigation(test1,{hp:400});
+    let nav = new Navigation(test1,{hp:400,firepower:10});
 
     stage.addChild(nav);
 

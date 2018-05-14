@@ -61,7 +61,7 @@ class TerritoryButton extends Button {
 }
 
 class Menu extends createjs.Container {
-    constructor(w, h, title, buttons, props, textProps) {
+    constructor(w, h, title, elements, props, textProps) {
         super();
         let mainWindow = new createjs.Shape();
         mainWindow.graphics.beginStroke(props.stroke).beginFill(props.fill).drawRect(-w / 2, -h / 2, w, h);
@@ -73,8 +73,8 @@ class Menu extends createjs.Container {
         banner.x = 0;
         banner.y = props.b_y;
         this.addChild(banner);
-        for (let i = 0; i < buttons.length; i++)
-            this.addChild(buttons[i]);
+        for (let i = 0; i < elements.length; i++)
+            this.addChild(elements[i]);
         this.hide(0);
 
     }
@@ -85,5 +85,58 @@ class Menu extends createjs.Container {
 
     hide(time) {
         return createjs.Tween.get(this).to({alpha: 0, x: s_w / 2, y: -s_h / 2}, time, createjs.Ease.sineIn);
+    }
+}
+
+class AttackMenu extends Menu {
+    constructor(char, stats, enemy, hpbar, gameOverMenu) {
+        let self;
+        let attack = function () {
+            let shoot = function () {
+                if (stats.hp > 0 && enemy.hp > 0) {
+                    stats.hp -= enemy.firepower;
+                    enemy.hp -= stats.firepower;
+                    hpbar.update(stats.hp);
+                    char.fadeText(-enemy.firepower);
+                    enemy.fadeText(-stats.firepower).call(shoot);
+                }
+                else {
+                    if (enemy.hp <= 0) {
+                        enemy.die();
+                    }
+                }
+            };
+            self.hide(1000).call(shoot);
+        };
+        let margin = 100;
+        let playerStats = new createjs.Text("Jogador:\nPoder de fogo: " + stats.firepower + "\nHP: " + stats.hp, "20px Helvetica", "black");
+        playerStats.x = -300;
+        playerStats.y = -200;
+        let enemyStats = new createjs.Text("Inimigo:\nPoder de fogo: " + enemy.firepower + "\nHP: " + enemy.hp, "20px Helvetica", "black");
+        enemyStats.x = 300;
+        enemyStats.y = -200;
+        let attackButton = new Button(-300, 100, 400, 100, "Atacar", {fill: "turquoise", stroke: "black", round: 5},{font:"Helvetica",size:20, color:"black"},{color: "green", alpha: 0.5},attack);
+        let cancelButton = new Button(300, 100, 400, 100, "Cancelar", {fill: "turquoise", stroke: "black", round: 5},{font:"Helvetica",size:20, color:"black"},{color: "green", alpha: 0.5});
+        super(s_w - 2 * margin, s_h - 2 * margin, "Avançar para esta casa?", [attackButton, cancelButton, playerStats, enemyStats], {
+            stroke: "black",
+            fill: "beige",
+            b_y: -s_h / 2 + margin * 2
+        }, {
+            color: "black",
+            size: 30,
+            font: "Helvetica"
+        });
+        self = this;
+        this.playerStats = playerStats;
+        this.stats = stats;
+    }
+
+    updatePlayerText() {
+        this.playerStats.text = "Jogador:\nPoder de fogo: " + this.stats.firepower + "\nHP: " + this.stats.hp;
+    }
+
+    show(time) {
+        this.updatePlayerText();
+        super.show(time)
     }
 }

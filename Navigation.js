@@ -16,23 +16,26 @@ class NavArea extends createjs.Container {
 class Navigation extends createjs.Container {
     constructor(expedition, stats) {
         super();
-
-        this.stats = Object.assign({},stats);
+        
+        let curStats = stats;
 
         let tileClick = function (ev) {
-            let tile = ev.currentTarget;
-            if (tile.clickable) {
-                if (tile.menu !== undefined)
-                    tile.menu.show(1000);
+            let target = ev.currentTarget;
+            if (!char.moving && HexGrid.isAdjacent(char.hex_x,char.hex_y,target.hex_x,target.hex_y) && (target.clickable)) {
+                char.moving = true;
+                if (target.menu !== undefined)
+                    target.menu.show(1000);
                 else {
                     let finish_move = function () {
-                        this.stats.hp -= tile.cost;
-                        bar.update(this.stats.hp);
-                        for (let i = 0; i < enemies.length; i++)
-                            enemies[i].move();
+                        curStats.hp -= target.cost;
+                        bar.update(curStats.hp);
+                        for (let i = 0; i < hexg.enemies.length; i++)
+                            hexg.enemies[i].move();
+                        if (hexg.enemies.length === 0)
+                            char.moving = false;
                         hexg.updateClickable(char);
                     };
-                    char.moveTo(tile).call(finish_move);
+                    char.moveTo(target).call(finish_move);
                 }
             }
         };
@@ -45,22 +48,25 @@ class Navigation extends createjs.Container {
 
         let navArea = new NavArea(hexg, expedition.background, expedition.background_properties);
 
-        let enemies = [];
+        let hud = new createjs.Container();
+        let bar = new Bar(10,200,100,10,curStats.hp,"red");
+        hud.addChild(bar);
+
         for (let i = 0; i < expedition.enemies.length; i++){
             let enemy = expedition.enemies[i];
             enemy = new Enemy(expedition.tilesize,enemy.x,enemy.y,enemy.img,hexg,char,enemy.radar,enemy.firepower,enemy.hp,enemy.prize);
-            enemies.push(enemy);
-            navArea.addChild(enemy);
+            enemy.addEventListener("click",tileClick);
+            enemy.menu = new AttackMenu(char,stats,enemy,bar);
+            hexg.addEnemy(enemy);
         }
 
-        navArea.addChild(char);
+        hexg.addChild(char);
         this.addChild(navArea);
 
-        let hud = new createjs.Container();
-        let bar = new Bar(10,200,100,10,this.stats.hp,"red");
-        hud.addChild(bar);
-
         this.addChild(hud);
+        for (let i = 0; i < hexg.enemies.length; i++) {
+            this.addChild(hexg.enemies[i].menu);
+        }
 
         hexg.updateClickable(char);
     }

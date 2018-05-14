@@ -79,7 +79,6 @@ class Hexagon extends createjs.Container {
 class Tile extends Hexagon {
     constructor(tilesize, hex_x, hex_y, cost, dev, prize, tint = undefined, frame, img, clickable = false, menu) {
         super(tilesize, hex_x, hex_y, tint, {frame: frame, img: img}, false);
-        this.filled = false;
         this.cost = cost;
         this.dev = dev;
         this.prize = prize;
@@ -92,40 +91,42 @@ class Unit extends Hexagon {
         super(tilesize, hex_x, hex_y, undefined, {img: img}, true);
         this.hexg = hexg;
         this.curTile = hexg.getTile(hex_x, hex_y);
-        this.curTile.filled = true;
+        this.curTile.unit = this;
+        this.moving = false;
+    }
+
+    fadeText(val){
+        let self = this;
+        self.hexg.updateClickable(self);
+        let text = new createjs.Text(String(val), "20px Helvetica", "red");
+        text.x = 0;
+        text.y = 0;
+        self.addChild(text);
+        let clean = function () {
+            self.removeChild(text)
+        };
+        return createjs.Tween.get(text).to({y: -50, alpha: 0}, 500).call(clean);
     }
 
     moveTo(tile) {
         this.hexg.disableClickable();
-        let self = this;
-        let stop = function () {
-            self.hexg.updateClickable(self);
-            let text = new createjs.Text(String(-tile.cost), "20px Helvetica", "red");
-            text.x = 0;
-            text.y = 0;
-            self.addChild(text);
-            let clean = function () {
-                self.removeChild(text)
-            };
-            createjs.Tween.get(text).to({y: -50, alpha: 0}, 500).call(clean);
-        };
-
         this.hex_x = tile.hex_x;
         this.hex_y = tile.hex_y;
-        this.curTile.filled = false;
+        this.curTile.unit = undefined;
         this.curTile = tile;
-        tile.filled = true;
+        tile.unit = this;
         tile.dispatchEvent(new Event("mouseout"));
         return createjs.Tween.get(this).to({
             x: tile.x,
             y: tile.y
-        }, 1000, createjs.Ease.sineInOut).call(stop);
+        }, 1000, createjs.Ease.sineInOut).call(this.fadeText,[-tile.cost]);
     }
 }
 
 class Enemy extends Unit {
     constructor(tilesize, hex_x, hex_y, img, hexg, char, radar, firepower, hp, prize) {
         super(tilesize, hex_x, hex_y, img, hexg);
+        this.clickable = true;
         this.char = char;
         this.radar = radar;
         this.firepower = firepower;
@@ -134,6 +135,7 @@ class Enemy extends Unit {
     }
 
     move() {
+        let self = this;
         let final = undefined;
         let tiles = this.hexg.getAdjacent(this.hex_x, this.hex_y);
         if (dist(this.char.x, this.char.y, this.x, this.y) < this.radar * this.tilesize) {
@@ -152,16 +154,32 @@ class Enemy extends Unit {
 
         }
         if (final !== undefined) {
-            this.curTile.filled = false;
+            this.curTile.unit = undefined;
             this.curTile = final;
-            final.filled = true;
+            final.unit = this;
             this.hex_x = final.hex_x;
             this.hex_y = final.hex_y;
+            let activateClick = function () {
+                self.char.moving = false;
+                self.hexg.updateClickable(self.char)
+            };
             createjs.Tween.get(this).to({
                 x: final.x,
                 y: final.y
-            }, 1000, createjs.Ease.sineInOut).call(stop);
+            }, 1000, createjs.Ease.sineInOut).call(activateClick);
         }
+    }
+
+    die(){
+        let self = this;
+        function clean() {
+            self.hexg.removeEnemy(self);
+            self.char.moving = false;
+            this.curTile.unit = undefined;
+            self.hexg.updateClickable(self.char);
+
+        }
+        createjs.Tween.get(self).to({alpha:0},1000).call(clean);
     }
 }
 
@@ -172,6 +190,7 @@ class HexGrid extends createjs.Container {
         this.frame = frame;
         this.tint = tint;
         this.tiles = [];
+        this.enemies = [];
     }
 
     /*
@@ -214,7 +233,7 @@ class HexGrid extends createjs.Container {
 
     updateClickable(char) {
         for (let i = 0; i < this.tiles.length; i++)
-            this.tiles[i].clickable = HexGrid.isAdjacent(char.hex_x, char.hex_y, this.tiles[i].hex_x, this.tiles[i].hex_y) && !this.tiles[i].filled;
+            this.tiles[i].clickable = HexGrid.isAdjacent(char.hex_x, char.hex_y, this.tiles[i].hex_x, this.tiles[i].hex_y) && this.tiles[i].unit === undefined;
     }
 
     disableClickable() {
@@ -229,10 +248,20 @@ class HexGrid extends createjs.Container {
         this.addChild(hex);
     }
 
+    addEnemy(enemy){
+        this.enemies.push(enemy);
+        this.addChild(enemy);
+    }
+
+    removeEnemy(enemy){
+        this.enemies.splice(this.enemies.indexOf(enemy),1);
+        this.removeChild(enemy);
+    }
+
     getAdjacent(hex_x, hex_y) {
         let tiles = [];
         for (let i = 0; i < this.tiles.length; i++) {
-            if (!this.tiles[i].filled && HexGrid.isAdjacent(hex_x, hex_y, this.tiles[i].hex_x, this.tiles[i].hex_y))
+            if (this.tiles[i].unit === undefined && HexGrid.isAdjacent(hex_x, hex_y, this.tiles[i].hex_x, this.tiles[i].hex_y))
                 tiles.push(this.tiles[i]);
         }
         return tiles;
