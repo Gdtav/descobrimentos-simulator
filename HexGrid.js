@@ -1,5 +1,34 @@
 const hex_fac = Math.sqrt(3);
 
+let use_last = false;
+let y2;
+let y1;
+
+function gaussianRand(mean, stdev) {
+
+    if (use_last) {
+        y1 = y2;
+        use_last = false;
+    }
+    else {
+        let x1, x2, w;
+        do {
+            x1 = 2.0 * Math.random() - 1.0;
+            x2 = 2.0 * Math.random() - 1.0;
+            w = x1 * x1 + x2 * x2;
+        } while (w >= 1.0);
+        w = Math.sqrt((-2.0 * Math.log(w)) / w);
+        y1 = x1 * w;
+        y2 = x2 * w;
+        use_last = true;
+    }
+
+    let retval = mean + stdev * y1;
+    if (retval > 0)
+        return retval;
+    return -retval;
+}
+
 function dist(x1, y1, x2, y2) {
     return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
 }
@@ -11,7 +40,7 @@ function angle(vertex_x, vertex_y, p1_x, p1_y, p2_x, p2_y) {
 
     let P12 = dist2(vertex_x, vertex_y, p1_x, p1_y), P13 = dist2(vertex_x, vertex_y, p2_x, p2_y),
         P23 = dist2(p1_x, p1_y, p2_x, p2_y);
-    return Math.acos(Math.max(-1,Math.min(1,(P12 + P13 - P23) / (2 * Math.sqrt(P12 * P13)))));
+    return Math.acos(Math.max(-1, Math.min(1, (P12 + P13 - P23) / (2 * Math.sqrt(P12 * P13)))));
 }
 
 function convertToXY(tilesize, hex_x, hex_y) {
@@ -84,6 +113,10 @@ class Tile extends Hexagon {
         this.prize = prize;
         this.menu = menu;
     }
+
+    getCost() {
+        return Math.round(gaussianRand(this.cost, this.dev));
+    }
 }
 
 class Unit extends Hexagon {
@@ -95,9 +128,8 @@ class Unit extends Hexagon {
         this.moving = false;
     }
 
-    fadeText(val){
+    fadeText(val) {
         let self = this;
-        self.hexg.updateClickable(self);
         let text = new createjs.Text(String(val), "20px Helvetica", "red");
         text.x = 0;
         text.y = 0;
@@ -106,6 +138,15 @@ class Unit extends Hexagon {
             self.removeChild(text)
         };
         return createjs.Tween.get(text).to({y: -50, alpha: 0}, 500).call(clean);
+    }
+}
+
+class Player extends Unit {
+    constructor(tilesize, hex_x, hex_y, img, hexg, stats, hpbar) {
+        super(tilesize, hex_x, hex_y, img, hexg);
+        this.clickable = true;
+        this.stats = stats;
+        this.hpbar = hpbar
     }
 
     moveTo(tile) {
@@ -119,17 +160,28 @@ class Unit extends Hexagon {
         return createjs.Tween.get(this).to({
             x: tile.x,
             y: tile.y
-        }, 1000, createjs.Ease.sineInOut).call(this.fadeText,[-tile.cost]);
+        }, 1000, createjs.Ease.sineInOut).call(this.hit, [tile.getCost()]);
+    }
+
+    hit(val) {
+        this.stats.hp -= val;
+        this.hpbar.update(this.stats.hp);
+        this.fadeText(-val);
+    }
+
+    getAttack() {
+        return Math.round(gaussianRand(this.stats.firepower, this.stats.dev));
     }
 }
 
 class Enemy extends Unit {
-    constructor(tilesize, hex_x, hex_y, img, hexg, char, radar, firepower, hp, prize) {
+    constructor(tilesize, hex_x, hex_y, img, hexg, char, radar, firepower, dev, hp, prize) {
         super(tilesize, hex_x, hex_y, img, hexg);
         this.clickable = true;
         this.char = char;
         this.radar = radar;
         this.firepower = firepower;
+        this.dev = dev;
         this.hp = hp;
         this.prize = prize;
     }
@@ -161,7 +213,11 @@ class Enemy extends Unit {
             this.hex_y = final.hex_y;
             let activateClick = function () {
                 self.char.moving = false;
-                self.hexg.updateClickable(self.char)
+                self.hexg.updateClickable(self.char);
+                if (HexGrid.isAdjacent(self.char.hex_x, self.char.hex_y, self.hex_x, self.hex_y)) {
+                    self.char.hit(self.getAttack());
+                }
+
             };
             createjs.Tween.get(this).to({
                 x: final.x,
@@ -170,8 +226,9 @@ class Enemy extends Unit {
         }
     }
 
-    die(){
+    die() {
         let self = this;
+
         function clean() {
             self.hexg.removeEnemy(self);
             self.char.moving = false;
@@ -179,8 +236,44 @@ class Enemy extends Unit {
             self.hexg.updateClickable(self.char);
 
         }
-        createjs.Tween.get(self).to({alpha:0},1000).call(clean);
+        return createjs.Tween.get(self).to({alpha: 0}, 1000).call(clean);
     }
+
+    getAttack() {
+        return Math.round(gaussianRand(this.firepower, this.dev));
+    }
+
+    hit(val) {
+        let self = this;
+        let check = function () {
+            if (self.hp <= 0)
+                self.die();
+        };
+        this.hp -= val;
+        return this.fadeText(-val).call(check);
+    }
+
+    shoot() {
+        let self = this;
+        if (this.char.stats.hp > 0 && this.hp > 0) {
+            this.char.hit(this.getAttack());
+            let restart = function () {
+                self.shoot();
+            };
+            this.hit(this.char.getAttack()).call(restart);
+
+        }
+        else {
+            if (this.hp <= 0) {
+                let resource;
+                for (resource in this.prize)
+                    if (this.stats.curResources.hasOwnProperty(resource))
+                        this.stats.curResources[resource] += this.prize[resource];
+                    else
+                        this.stats.curResources[resource] = this.prize[resource];
+            }
+        }
+    };
 }
 
 class HexGrid extends createjs.Container {
@@ -248,13 +341,13 @@ class HexGrid extends createjs.Container {
         this.addChild(hex);
     }
 
-    addEnemy(enemy){
+    addEnemy(enemy) {
         this.enemies.push(enemy);
         this.addChild(enemy);
     }
 
-    removeEnemy(enemy){
-        this.enemies.splice(this.enemies.indexOf(enemy),1);
+    removeEnemy(enemy) {
+        this.enemies.splice(this.enemies.indexOf(enemy), 1);
         this.removeChild(enemy);
     }
 

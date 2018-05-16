@@ -7,8 +7,8 @@ window.addEventListener("load", function () {
 });
 
 function centerText(text) {
-    text.x = -(text.getMeasuredWidth() / 2);
-    text.y = -(text.getMeasuredHeight() / 2);
+    text.x = -(text.getBounds().width / 2);
+    text.y = -(text.getBounds().height / 2);
     return text;
 }
 
@@ -29,7 +29,7 @@ class Button extends createjs.Container {
         let self = this;
         if (tint !== undefined) {
             let hit = new createjs.Shape();
-            hit.graphics.beginFill("black").drawRoundRect(-w / 2, -h / 2, w, h, props.round)
+            hit.graphics.beginFill("black").drawRoundRect(-w / 2, -h / 2, w, h, props.round);
             this.hitArea = hit;
         }
         let tintTile = function (ev) {
@@ -55,8 +55,8 @@ class Button extends createjs.Container {
 }
 
 class TerritoryButton extends Button {
-    constructor(x,y, action) {
-        super(x,y,10,10,"",{round: 5, fill: "red", },{}, {color: "orange", alpha: 0.7},action);
+    constructor(x, y, action) {
+        super(x, y, 10, 10, "", {round: 5, fill: "red",}, {}, {color: "orange", alpha: 0.7}, action);
     }
 }
 
@@ -88,36 +88,62 @@ class Menu extends createjs.Container {
     }
 }
 
+class Box extends createjs.Shape {
+    constructor(w, h, stroke, fill, margin) {
+        super();
+        this.x = 0;
+        this.y = 0;
+        this.graphics.beginStroke(stroke).beginFill(fill).drawRect(-w / 2 - margin, -h / 2 - margin, w + 2 * margin, h + 2 * margin);
+    }
+}
+
 class AttackMenu extends Menu {
     constructor(char, stats, enemy, hpbar, gameOverMenu) {
         let self;
         let attack = function () {
             let shoot = function () {
-                if (stats.hp > 0 && enemy.hp > 0) {
-                    stats.hp -= enemy.firepower;
-                    enemy.hp -= stats.firepower;
-                    hpbar.update(stats.hp);
-                    char.fadeText(-enemy.firepower);
-                    enemy.fadeText(-stats.firepower).call(shoot);
-                }
-                else {
-                    if (enemy.hp <= 0) {
-                        enemy.die();
-                    }
-                }
+                enemy.shoot();
             };
             self.hide(1000).call(shoot);
         };
+
+        let cancel = function () {
+            let clean = function () {
+                char.moving = false;
+            };
+            self.hide(1000).call(clean);
+        };
+
         let margin = 100;
-        let playerStats = new createjs.Text("Jogador:\nPoder de fogo: " + stats.firepower + "\nHP: " + stats.hp, "20px Helvetica", "black");
-        playerStats.x = -300;
-        playerStats.y = -200;
-        let enemyStats = new createjs.Text("Inimigo:\nPoder de fogo: " + enemy.firepower + "\nHP: " + enemy.hp, "20px Helvetica", "black");
-        enemyStats.x = 300;
-        enemyStats.y = -200;
-        let attackButton = new Button(-300, 100, 400, 100, "Atacar", {fill: "turquoise", stroke: "black", round: 5},{font:"Helvetica",size:20, color:"black"},{color: "green", alpha: 0.5},attack);
-        let cancelButton = new Button(300, 100, 400, 100, "Cancelar", {fill: "turquoise", stroke: "black", round: 5},{font:"Helvetica",size:20, color:"black"},{color: "green", alpha: 0.5});
-        super(s_w - 2 * margin, s_h - 2 * margin, "Avançar para esta casa?", [attackButton, cancelButton, playerStats, enemyStats], {
+        let box_margin = 10;
+
+        let playerStats = centerText(new createjs.Text("Jogador:\nPoder de fogo: " + stats.firepower + "\nHP: " + stats.hp, "20px Helvetica", "black"));
+        let boxPlayer = new Box(playerStats.getBounds().width, playerStats.getBounds().height, "black", "white", box_margin);
+        let playerInfo = new createjs.Container();
+        playerInfo.x = -100;
+        playerInfo.y = 0;
+        playerInfo.addChild(boxPlayer);
+        playerInfo.addChild(playerStats);
+
+        let enemyStats = centerText(new createjs.Text("Inimigo:\nPoder de fogo: " + enemy.firepower + "\nHP: " + enemy.hp, "20px Helvetica", "black"));
+        let boxEnemy = new Box(enemyStats.getBounds().width, enemyStats.getBounds().height, "black", "white", box_margin);
+        let enemyInfo = new createjs.Container();
+        enemyInfo.x = 100;
+        enemyInfo.y = 0;
+        enemyInfo.addChild(boxEnemy);
+        enemyInfo.addChild(enemyStats);
+
+        let attackButton = new Button(-150, 150, 200, 60, "Atacar", {
+            fill: "turquoise",
+            stroke: "black",
+            round: 5
+        }, {font: "Helvetica", size: 20, color: "black"}, {color: "green", alpha: 0.5}, attack);
+        let cancelButton = new Button(150, 150, 200, 60, "Cancelar", {
+            fill: "turquoise",
+            stroke: "black",
+            round: 5
+        }, {font: "Helvetica", size: 20, color: "black"}, {color: "green", alpha: 0.5}, cancel);
+        super(700, 500, "Abordagem!", [attackButton, cancelButton, playerInfo, enemyInfo], {
             stroke: "black",
             fill: "beige",
             b_y: -s_h / 2 + margin * 2
@@ -128,15 +154,22 @@ class AttackMenu extends Menu {
         });
         self = this;
         this.playerStats = playerStats;
+        this.enemyStats = enemyStats;
         this.stats = stats;
+        this.enemy = enemy;
     }
 
     updatePlayerText() {
         this.playerStats.text = "Jogador:\nPoder de fogo: " + this.stats.firepower + "\nHP: " + this.stats.hp;
     }
 
+    updateEnemyText() {
+        this.enemyStats.text = "Inimigo:\nPoder de fogo: " + this.enemy.firepower + "\nHP: " + this.enemy.hp;
+    }
+
     show(time) {
         this.updatePlayerText();
+        this.updateEnemyText();
         super.show(time)
     }
 }

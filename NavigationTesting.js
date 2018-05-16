@@ -11,12 +11,12 @@ function testing() {
     context.webkitImageSmoothingEnabled = context.mozImageSmoothingEnabled = true;
 
     test1.hexmap = [];
-    for (let i = 0; i < 10; i++){
+    for (let i = 0; i < 10; i++) {
         for (let j = 0; j < 10; j++)
-            test1.hexmap.push({x: i, y: j, cost: 20})
+            test1.hexmap.push({x: i, y: j, cost: 20, dev: 10})
     }
 
-    let nav = new Navigation(test1,{hp:400,firepower:10});
+    let nav = new Navigation(test1, {hp: 400, firepower: 10, dev: 1, curResources: {}});
 
     stage.addChild(nav);
 
@@ -36,7 +36,6 @@ function main() {
     let selectedTile;
 
 
-
     let stop = function () {
         moving = false;
         hexg.updateClickable(char);
@@ -44,14 +43,16 @@ function main() {
         text.x = 0;
         text.y = 0;
         char.addChild(text);
-        let clean = function(){char.removeChild(text)};
-        createjs.Tween.get(text).to({y:-tilesize,alpha:0},1000).call(clean);
+        let clean = function () {
+            char.removeChild(text)
+        };
+        createjs.Tween.get(text).to({y: -tilesize, alpha: 0}, 1000).call(clean);
     };
 
     let tilesize = 75;
 
     let tileClick = function (ev) {
-        if(ev.currentTarget.clickable)
+        if (ev.currentTarget.clickable)
             char.moveTo(ev.currentTarget);
         /*
         if (!moving && !inmenu && ev.currentTarget.clickable) {
@@ -98,7 +99,7 @@ function main() {
         fill: "turquoise",
         stroke: "black",
         round: 5
-    }, {font: "Helvetica", size: "30", color: "black"}, {color: "green", alpha:0.5},noClick);
+    }, {font: "Helvetica", size: "30", color: "black"}, {color: "green", alpha: 0.5}, noClick);
 
     let menu = new Menu(w - 2 * margin, h - 2 * margin, "Avançar para esta casa?", [yesButton, noButton], {
         stroke: "black",
@@ -113,10 +114,10 @@ function main() {
     let hexg = new HexGrid(tilesize, {color: "rgb(255,0,0)", alpha: 0.6}, "red");
     for (let i = 0; i < 6; i++) {
         for (let j = 0; j < 12; j++)
-            hexg.newHex(i, j, Math.round(Math.random()*40), {gold: 10}, tileClick);
+            hexg.newHex(i, j, Math.round(Math.random() * 40), {gold: 10}, tileClick);
     }
 
-    char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png",hexg);
+    char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png", hexg);
 
     let navArea = new NavArea(hexg, "Images/sat.jpg", {x: -2250, y: -1000, scale: 1.2});
 
