@@ -19,6 +19,8 @@ class Navigation extends createjs.Container {
 
         let curStats = stats;
 
+        let winMenu = new WinMenu(this,undefined);
+
         let tileClick = function (ev) {
             let target = ev.currentTarget;
             if (!char.moving && HexGrid.isAdjacent(char.hex_x, char.hex_y, target.hex_x, target.hex_y) && (target.clickable)) {
@@ -40,14 +42,18 @@ class Navigation extends createjs.Container {
         let hexg = new HexGrid(expedition.tilesize, expedition.tint, expedition.frame);
         for (let i = 0; i < expedition.hexmap.length; i++) {
             let tile = expedition.hexmap[i];
-            hexg.newHex(tile.x, tile.y, tile.cost, tile.dev, tile.prize, tileClick);
+            let menu = undefined;
+            if (tile.end)
+                menu = winMenu;
+            hexg.newHex(tile.x, tile.y, tile.cost, tile.dev, tile.prize, tileClick, tile.port, tile.end,tile.img,menu);
         }
-
         let hud = new createjs.Container();
-        let bar = new Bar(10, 200, 100, 10, curStats.hp, "red");
+        let bar = new Bar(10, 200, 100, 15, curStats.hp, "red");
         hud.addChild(bar);
 
-        let char = new Player(expedition.tilesize, expedition.start_x, expedition.start_y, expedition.boatImg, hexg, stats, bar);
+        let gameOverMenu = new GameOverMenu(this, undefined);
+
+        let char = new Player(expedition.tilesize, expedition.start_x, expedition.start_y, expedition.boatImg, hexg, stats, bar, gameOverMenu);
 
         let navArea = new NavArea(hexg, expedition.background, expedition.background_properties);
 
@@ -61,6 +67,8 @@ class Navigation extends createjs.Container {
 
         hexg.addChild(char);
         this.addChild(navArea);
+        this.addChild(gameOverMenu);
+        this.addChild(winMenu);
 
         this.addChild(hud);
         for (let i = 0; i < hexg.enemies.length; i++) {
@@ -68,5 +76,14 @@ class Navigation extends createjs.Container {
         }
 
         hexg.updateClickable(char);
+    }
+
+    show(time) {
+        return createjs.Tween.get(this).to({x: 0}, time, createjs.Ease.sineOut);
+    }
+
+    hide(time) {
+        let size = getScreenDimensions();
+        return createjs.Tween.get(this).to({x: size.w}, time, createjs.Ease.sineIn);
     }
 }

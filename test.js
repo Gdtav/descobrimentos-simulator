@@ -13,14 +13,14 @@ test1 = {
         }
     ],
     hexmap: [
-        {x: 0, y: 0, cost: 10, dev:1},
-        {x: 1, y: 0, cost: 20, dev:2},
-        {x: 0, y: 1, cost: 30, dev:3},
-        {x: 6, y: 6, cost: 30, dev:3},
-        {x: 6, y: 7, cost: 30, dev:3},
-        {x: 6, y: 5, cost: 30, dev:3},
-        {x: 6, y: 8, cost: 30, dev:3},
-        {x: 5, y: 6, cost: 30, dev:3}
+        {x: 0, y: 0, cost: 10, dev:1, port: false, end:false},
+        {x: 1, y: 0, cost: 20, dev:2, port: false, end:false},
+        {x: 0, y: 1, cost: 30, dev:3, port: false, end:false},
+        {x: 6, y: 6, cost: 30, dev:3, port: false, end:false},
+        {x: 6, y: 7, cost: 30, dev:3, port: false, end:false},
+        {x: 6, y: 5, cost: 30, dev:3, port: false, end:false},
+        {x: 6, y: 8, cost: 30, dev:3, port: false, end:false},
+        {x: 5, y: 6, cost: 30, dev:3, port: false, end:false}
     ],
     background: "Images/sat.jpg",
     background_properties: {x: -2250, y: -1000, scale: 1.2},

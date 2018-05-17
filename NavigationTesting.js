@@ -15,6 +15,7 @@ function testing() {
         for (let j = 0; j < 10; j++)
             test1.hexmap.push({x: i, y: j, cost: 20, dev: 10})
     }
+    test1.hexmap.push({x: 5, y: 10, cost: 10, dev:1, port: false, end:true});
 
     let nav = new Navigation(test1, {hp: 400, firepower: 10, dev: 1, curResources: {}});
 
@@ -114,7 +115,7 @@ function main() {
     let hexg = new HexGrid(tilesize, {color: "rgb(255,0,0)", alpha: 0.6}, "red");
     for (let i = 0; i < 6; i++) {
         for (let j = 0; j < 12; j++)
-            hexg.newHex(i, j, Math.round(Math.random() * 40), {gold: 10}, tileClick);
+            hexg.newHex(i, j, Math.round(Math.random() * 40), 10, {gold: 10}, tileClick);
     }
 
     char = new Unit(tilesize, 0, 0, 0, 0, "Images/boat.png", hexg);

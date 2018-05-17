@@ -9,26 +9,16 @@ function click() {
 
 function mainscreen() {
     let canvas = document.getElementById("canvas");
-    let w = canvas.width = 1280;
-    let h = canvas.height = 720;
+    let w = canvas.width;
+    let h = canvas.height;
     let stage = new createjs.Stage(canvas);
     stage.enableMouseOver();
+    let stats = {gold:0,wood:0,iron:0,rock:0,food:0};
 
-    //criacao dos territorios
-    let bAcores = new TerritoryButton(100, 100, click);
-    let bBojador = new TerritoryButton(405, 175, click);
-    let bMadeira = new TerritoryButton(375, 120, click);
-    let bCaboverde = new TerritoryButton(320, 260, click);
-    let bAngola = new TerritoryButton(650, 500, click);
-
-    //inicializacao dos objetos do jogo
-    let bojador = new Territory([], false, "Bojador", "", bBojador);
-    let acores = new Territory([], false, "Açores", "", bAcores);
-    let madeira = new Territory([], false, "Madeira", "", bMadeira);
-    let caboverde = new Territory([], false, "Cabo Verde", "", bCaboverde);
-    let angola = new Territory([], false, "Angola", "", bAngola);
-
-    let main = new MainScreen([bojador, acores, madeira, caboverde, angola], "Images/rsz_sat.jpg", {});
+    let territories = [];
+    for (let i = 0; i < mainscreendata.territories.length; i++)
+        territories.push(territoryInstance(mainscreendata.territories[i],stats));
+    let main = new MainScreen(territories, "Images/rsz_sat.jpg", stats,1000);
     stage.addChild(main);
     createjs.Ticker.framerate = 60;
     createjs.Ticker.addEventListener("tick", stage);

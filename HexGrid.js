@@ -62,15 +62,8 @@ class Hexagon extends createjs.Container {
         this.clickable = clickable;
         if (typeof(fill) === "object") {
             if (typeof(fill.img) !== "undefined") {
-                let img = new Image();
-                this.map = new createjs.Bitmap(img);
-                img.onload = function () {
-                    self.map.scale = Math.min((tilesize * 2) / img.naturalWidth, (tilesize * hex_fac) / img.naturalHeight);
-                    self.map.x = -self.map.getBounds().width * self.map.scale / 2;
-                    self.map.y = -self.map.getBounds().height * self.map.scale / 2;
-                    self.addChild(self.map);
-                };
-                img.src = fill.img;
+                this.map = new Sprite(fill.img, 0, 0, tilesize * hex_fac);
+                this.addChild(this.map);
             }
             if (typeof(fill.frame) !== "undefined") {
                 let frm = new createjs.Shape();
@@ -106,12 +99,28 @@ class Hexagon extends createjs.Container {
 }
 
 class Tile extends Hexagon {
-    constructor(tilesize, hex_x, hex_y, cost, dev, prize, tint = undefined, frame, img, clickable = false, menu) {
+    constructor(tilesize, hex_x, hex_y, cost, dev, prize, tint = undefined, frame, img, clickable = false, port = false, end = false, menu) {
         super(tilesize, hex_x, hex_y, tint, {frame: frame, img: img}, false);
         this.cost = cost;
         this.dev = dev;
         this.prize = prize;
         this.menu = menu;
+        if(end || port){
+            let color;
+            if(end)
+                color = "green";
+            else
+                color = "blue";
+
+            let point = new createjs.Shape();
+            point.graphics.beginStroke("black").beginFill(color).drawCircle(0,0,tilesize/7);
+
+            let halo = new createjs.Shape();
+            halo.graphics.beginFill(color).drawPolyStar(0, 0, tilesize, 6, 0, 120);
+            createjs.Tween.get(halo, {loop:true}).to({scale:0.1,alpha:1},0).to({scale:1,alpha:0.25},2000,createjs.Ease.sineOut).to({alpha:0},500,createjs.Ease.sineOut);
+
+            this.addChild(halo,point);
+        }
     }
 
     getCost() {
@@ -142,11 +151,12 @@ class Unit extends Hexagon {
 }
 
 class Player extends Unit {
-    constructor(tilesize, hex_x, hex_y, img, hexg, stats, hpbar) {
+    constructor(tilesize, hex_x, hex_y, img, hexg, stats, hpbar, gameOverMenu) {
         super(tilesize, hex_x, hex_y, img, hexg);
         this.clickable = true;
         this.stats = stats;
-        this.hpbar = hpbar
+        this.hpbar = hpbar;
+        this.gameOverMenu = gameOverMenu;
     }
 
     moveTo(tile) {
@@ -164,9 +174,15 @@ class Player extends Unit {
     }
 
     hit(val) {
+        let self = this;
+        let death = function () {
+            if(self.stats.hp <= 0)
+                self.gameOverMenu.show(500);
+        };
         this.stats.hp -= val;
         this.hpbar.update(this.stats.hp);
-        this.fadeText(-val);
+        this.fadeText(-val).call(death);
+
     }
 
     getAttack() {
@@ -236,6 +252,7 @@ class Enemy extends Unit {
             self.hexg.updateClickable(self.char);
 
         }
+
         return createjs.Tween.get(self).to({alpha: 0}, 1000).call(clean);
     }
 
@@ -334,8 +351,8 @@ class HexGrid extends createjs.Container {
             this.tiles[i].clickable = false;
     }
 
-    newHex(hex_x, hex_y, cost, dev, prize, click, img = undefined, menu = undefined) {
-        let hex = new Tile(this.tilesize, hex_x, hex_y, cost, dev, prize, this.tint, this.frame, img, menu);
+    newHex(hex_x, hex_y, cost, dev, prize, click, port, end, img = undefined, menu = undefined) {
+        let hex = new Tile(this.tilesize, hex_x, hex_y, cost, dev, prize, this.tint, this.frame, img, false, port, end, menu);
         this.tiles.push(hex);
         hex.addEventListener("click", click);
         this.addChild(hex);

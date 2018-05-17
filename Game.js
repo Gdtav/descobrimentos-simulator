@@ -20,21 +20,57 @@ class Expedition {
 }
 
 class Territory {
-    constructor(facilities, conquered, name, img, button) {
+    constructor(x, y,facilities, conquered, name) {
+        this.x = x;
+        this.y = y;
         this.facilities = facilities;
         this.conquered = conquered;
         this.name = name;
-        this.img = img;
-        this.button = button;
     }
+
+    updateResources(){
+        for (let i = 0; i < this.facilities.length; i++)
+            this.facilities[i].updateResources();
+    }
+
 }
 
 class Facility {
-    constructor(lvl, maxLvl, res) {
+    constructor(lvl, maxLvl, type, stats) {
         this.lvl = lvl;
         this.maxLvl = maxLvl;
-        this.res = res;
+        this.stats = stats;
+        this.type = type;
+        switch (type) {
+            case "Campo":
+                this.resource = "food";
+                break;
+            case "Carpintaria":
+                this.resource = "wood";
+                break;
+            case "Mina de Ferro":
+                this.resource = "iron";
+                break;
+            case "Mina de Ouro":
+                this.resource = "gold";
+                break;
+            case "Pedreira":
+                this.resource = "rock";
+                break;
+            case "Ferreiro":
+                this.resource = undefined;
+                break;
+            case "Habitações":
+                this.resource = undefined;
+                break;
+        }
     }
+
+    updateResources(){
+        if(this.resource !== undefined)
+            this.stats[this.resource] += Values[this.resource][this.lvl];
+    }
+
 }
 
 class Stats {

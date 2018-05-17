@@ -6,7 +6,7 @@ function click() {
 }
 
 class MainScreen extends createjs.Container {
-    constructor(territories, backgr, stats) {
+    constructor(territories, backgr, stats, timeout) {
         super();
         this.territories = territories;
         let bg = new Image();
@@ -14,9 +14,26 @@ class MainScreen extends createjs.Container {
         bg.src = backgr;
         this.addChild(background);
         for (let i = 0; i < territories.length; i++) {
-            this.addChild(territories[i].button);
+            let t = territories[i];
+
+            let menu = new TerritoryMenu(t.x,t.y,300,30,20,t);
+            let openMenu = function () {
+                menu.show(500);
+            };
+            let button = new TerritoryButton(t.x,t.y,openMenu);
+            this.addChildAt(button,1);
+            this.addChild(menu);
         }
-        let hud = new createjs.Container();
+        let hud = new HUD(200,30,stats);
+        let updateResources = function () {
+            console.log("updating...");
+            for (let i = 0; i < territories.length; i++)
+                territories[i].updateResources();
+            hud.updateCounters();
+        };
+
+        window.setInterval(updateResources,timeout);
+        this.addChild(hud);
     }
 
 }
